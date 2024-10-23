@@ -76,7 +76,7 @@ def load_model(model: torch.nn.Module, model_path: str) -> torch.nn.Module:
   return model
 
 # Plot loss curves
-def plot_loss_curves(results):
+def plot_loss_curves(results, save=False, target_dir=None, model_name=None):
     """Plots training curves of a results dictionary.
 
     Args:
@@ -111,3 +111,16 @@ def plot_loss_curves(results):
     plt.title("Accuracy")
     plt.xlabel("Epochs")
     plt.legend()
+
+    # Plot save
+    if save:
+      # Create target directory
+      target_dir_path = Path(target_dir)
+      target_dir_path.mkdir(parents=True, exist_ok=True)
+
+      # Create save path
+      save_path = target_dir_path / model_name
+
+      # Save the curves
+      print(f"[INFO] Saving results curves to: {save_path}")
+      plt.savefig(save_path)
