@@ -5,6 +5,7 @@ Contains various utility functions for PyTorch model training.
 import torch
 from pathlib import Path
 import pandas as pd
+from matplotlib import pyplot as plt
 
 def save_model(model: torch.nn.Module, target_dir: str, model_name: str):
   """
