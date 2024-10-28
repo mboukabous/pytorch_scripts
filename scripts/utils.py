@@ -4,9 +4,13 @@ Contains various utility functions for PyTorch model training.
 
 import torch
 from torch import nn
+import torchvision
 from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
+
+from typing import List, Tuple
+from PIL import Image
 
 def save_model(model: torch.nn.Module, target_dir: str, model_name: str):
   """
@@ -86,6 +90,9 @@ def plot_loss_curves(results, save=False, target_dir=None, model_name=None):
              "train_acc": [...],
              "test_loss": [...],
              "test_acc": [...]}
+        save: save the plot or not.
+        target_dir: Directory to save the plot in.
+        model_name: Saved image name.
     """
     loss = results["train_loss"]
     test_loss = results["test_loss"]
@@ -125,6 +132,82 @@ def plot_loss_curves(results, save=False, target_dir=None, model_name=None):
       # Save the curves
       print(f"[INFO] Saving results curves to: {save_path}")
       plt.savefig(save_path)
+      
+def pred_plot_image(model:torch.nn.Module,
+                    image_path:str,
+                    class_names: List[str],
+                    image_size: Tuple[int, int] = (224, 224),
+                    transform: torchvision.transforms = None,
+                    device: torch.device = None,
+                    save=False, target_dir=None, model_name=None):
+  """
+  Loads an image, makes a prediction with a model, and plots the image with 
+  the predicted class and probability.
+
+  Args:
+    model : The neural network model used for prediction.
+    image_path : Path to the image file.
+    class_names : List of class names for prediction.
+    image_size : Size to resize the image (default is (224, 224)).
+    transform : default pretrained weightransform to apply to the image before prediction. s transform.
+    device : The device to perform inference on (default is `device`).
+    save: save the plot or not.
+    target_dir: Directory to save the plot in.
+    model_name: Saved image name.
+
+  Example usage:
+    pred_plot_image(model, "path/to/image.jpg", class_names)
+  """
+  # 1. Open the image with PIL
+  img = Image.open(image_path)
+
+  # 2. Create a transform if none
+  if transform is None:
+    # Get a set of pretrained model weights
+    weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT # default -> best available weights
+
+    # Get the transforms used to create our pretrained weights automatically
+    transform = weights.transforms()
+
+  # 3. Make sure the model is on the target device
+  model.to(device)
+
+  # 4. eval + inference mode
+  model.eval()
+  with torch.inference_mode():
+    # 5. Transform the image
+    img_transformed = transform(img)
+
+    # 6. add an extra batch dimension
+    img_transformed = img_transformed.unsqueeze(dim=0)
+
+    # 7. Make a prediction (also device check)
+    pred = model(img_transformed.to(device))
+
+  # 8. Convert the model output logits to pred probs
+  pred_probs = torch.softmax(pred, dim=1)
+
+  # 9. Convert pred probs to pred class
+  pred_class = torch.argmax(pred_probs, dim=1)
+
+  # 10. Plot image with predicted class and probability
+  plt.figure()
+  plt.imshow(img)
+  plt.title(f"Pred: {class_names[pred_class]} | Prob: {pred_probs.max():.3f}")
+  plt.axis(False)
+  
+  # 11. Save the plot if True
+  if save:
+    # Create target directory
+    target_dir_path = Path(target_dir)
+    target_dir_path.mkdir(parents=True, exist_ok=True)
+
+    # Create save path
+    save_path = target_dir_path / model_name
+
+    # Save the curves
+    print(f"[INFO] Saving results curves to: {save_path}")
+    plt.savefig(save_path)
 
 def replace_last_linear_layer(model, num_classes):
     """
