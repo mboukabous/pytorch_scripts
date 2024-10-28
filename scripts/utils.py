@@ -3,6 +3,7 @@ Contains various utility functions for PyTorch model training.
 """
 
 import torch
+from torch import nn
 from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -124,3 +125,41 @@ def plot_loss_curves(results, save=False, target_dir=None, model_name=None):
       # Save the curves
       print(f"[INFO] Saving results curves to: {save_path}")
       plt.savefig(save_path)
+
+def replace_last_linear_layer(model, num_classes):
+    """
+    Replaces the last Linear layer in the model with a new Linear layer 
+    that has `num_classes` output features.
+
+    Args:
+        model: The neural network model.
+        num_classes: The number of output features for the new Linear layer.
+
+    Example usage:
+        replace_last_linear_layer(model, num_classes=3)
+    """
+    for name, module in reversed(list(model.named_modules())):
+        if isinstance(module, nn.Linear):
+            in_features = module.in_features
+            # Check if the Linear layer is part of a Sequential container
+            if '.' in name:
+                parent_name, child_name = name.rsplit('.', 1)
+                parent_module = dict(model.named_modules())[parent_name]
+                if isinstance(parent_module, nn.Sequential):
+                    # Replace the child module in the Sequential container
+                    parent_module[int(child_name)] = nn.Linear(in_features, num_classes)
+                    print(f"Replaced layer '{name}' within Sequential with a new Linear layer with {num_classes} output features.")
+                    # Ensure requires_grad is True for the new layer
+                    for param in parent_module[int(child_name)].parameters():
+                        param.requires_grad = True
+            else:
+                # Replace the standalone Linear layer
+                setattr(model, name, nn.Linear(in_features, num_classes))
+                print(f"Replaced layer '{name}' with a new Linear layer with {num_classes} output features.")
+                # Ensure requires_grad is True for the new layer
+                for param in getattr(model, name).parameters():
+                    param.requires_grad = True
+            break
+    else:
+        print("No Linear layer found to replace.")
+    return model
