@@ -209,6 +209,88 @@ def pred_plot_image(model:torch.nn.Module,
     print(f"[INFO] Saving results curves to: {save_path}")
     plt.savefig(save_path)
 
+import matplotlib.pyplot as plt
+import torch
+from typing import List, Tuple
+from pathlib import Path
+from PIL import Image
+import torchvision
+
+def pred_plot_images(model: torch.nn.Module,
+                     image_paths: List[str],
+                     class_names: List[str],
+                     image_size: Tuple[int, int] = (224, 224),
+                     transform: torchvision.transforms = None,
+                     device: torch.device = None,
+                     save=False, target_dir=None, model_name="predictions_grid.png"):
+    """
+    Loads multiple images, makes predictions with a model, and plots them in a single figure.
+
+    Args:
+        model : The neural network model used for prediction.
+        image_paths : List of paths to the image files.
+        class_names : List of class names for prediction.
+        image_size : Size to resize the images (default is (224, 224)).
+        transform : Transform to apply to the images before prediction.
+        device : The device to perform inference on (default is `device`).
+        save : Whether to save the plot.
+        target_dir : Directory to save the plot in.
+        model_name : Name for the saved image file.
+
+    """
+    # Set up the figure for plotting (3 rows x 4 columns for 12 images)
+    num_images = len(image_paths)
+    rows, cols = 3, 4
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 15))
+
+    # Flatten axes for easy iteration, in case of 2D array layout
+    axes = axes.flatten()
+
+    # Switch model to evaluation mode and move to the target device
+    model.to(device)
+    model.eval()
+
+    with torch.inference_mode():
+        for idx, image_path in enumerate(image_paths[:rows * cols]):  # Limit to 12 images
+            # Open the image
+            img = Image.open(image_path)
+
+            # Apply default transform if none is provided
+            if transform is None:
+                weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT
+                transform = weights.transforms()
+
+            # Transform the image and add batch dimension
+            img_transformed = transform(img).unsqueeze(dim=0).to(device)
+
+            # Make a prediction
+            pred = model(img_transformed)
+            pred_probs = torch.softmax(pred, dim=1)
+            pred_class = torch.argmax(pred_probs, dim=1)
+
+            # Plot the image and add title with prediction
+            axes[idx].imshow(img)
+            axes[idx].set_title(f"Pred: {class_names[pred_class]} | Prob: {pred_probs.max():.3f}", fontsize=16)
+            axes[idx].axis("off")
+
+    # Remove empty subplots if any
+    for ax in axes[num_images:]:
+        ax.axis("off")
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # Save the plot if required
+    if save:
+        target_dir_path = Path(target_dir)
+        target_dir_path.mkdir(parents=True, exist_ok=True)
+        save_path = target_dir_path / model_name
+        print(f"[INFO] Saving predictions grid to: {save_path}")
+        plt.savefig(save_path)
+
+    # Display the plot
+    plt.show()
+
 def replace_last_linear_layer(model, num_classes):
     """
     Replaces the last Linear layer in the model with a new Linear layer 
