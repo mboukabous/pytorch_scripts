@@ -162,7 +162,10 @@ def train(model: torch.nn.Module,
   }
 
   # Loop through training and testing steps for a number of epochs
-  for epoch in tqdm(range(1, epochs+1)):
+  for epoch in tqdm(range(1, epochs + 1), desc=f"Epoch 1/{epochs}"):
+      # Update description at the start of each epoch
+      tqdm.write(f"\nEpoch {epoch}/{epochs}")
+    
       train_loss, train_acc = train_step(model=model,
                                          dataloader=train_dataloader,
                                          loss_fn=loss_fn,
