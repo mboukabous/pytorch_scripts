@@ -162,29 +162,24 @@ def train(model: torch.nn.Module,
   }
 
   # Loop through training and testing steps for a number of epochs
-  for epoch in tqdm(range(1, epochs + 1), desc=f"Epoch 1/{epochs}"):
-      # Update the description dynamically to show the current epoch
-      tqdm.set_description(f"Epoch {epoch}/{epochs}")
-  
-      # Training step
+  for epoch in tqdm(range(1, epochs + 1), desc="Training Epochs"):
+      # Training and testing steps
       train_loss, train_acc = train_step(model=model,
                                          dataloader=train_dataloader,
                                          loss_fn=loss_fn,
                                          optimizer=optimizer,
                                          device=device)
-      # Testing step
       test_loss, test_acc = test_step(model=model,
                                       dataloader=test_dataloader,
                                       loss_fn=loss_fn,
                                       device=device)
   
-      # Update the progress bar with metrics directly in the description
-      tqdm.set_postfix({
-          "train_loss": f"{train_loss:.4f}",
-          "train_acc": f"{train_acc:.4f}",
-          "test_loss": f"{test_loss:.4f}",
-          "test_acc": f"{test_acc:.4f}"
-      })
+      # Update tqdm description with dynamic metrics
+      tqdm.write(f"Epoch {epoch}/{epochs} | "
+                 f"train_loss: {train_loss:.4f} | "
+                 f"train_acc: {train_acc:.4f} | "
+                 f"test_loss: {test_loss:.4f} | "
+                 f"test_acc: {test_acc:.4f}")
 
       # Update results dictionary
       results["train_loss"].append(train_loss)
