@@ -162,7 +162,7 @@ def train(model: torch.nn.Module,
   }
 
   # Loop through training and testing steps for a number of epochs
-  for epoch in tqdm(range(epochs)):
+  for epoch in tqdm(range(1, epochs+1)):
       train_loss, train_acc = train_step(model=model,
                                          dataloader=train_dataloader,
                                          loss_fn=loss_fn,
@@ -175,7 +175,7 @@ def train(model: torch.nn.Module,
 
       # Print out what's happening
       print(
-          f" Epoch: {epoch+1} | "
+          f" Epoch: {epoch} | "
           f"train_loss: {train_loss:.4f} | "
           f"train_acc: {train_acc:.4f} | "
           f"test_loss: {test_loss:.4f} | "
