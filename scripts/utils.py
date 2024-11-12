@@ -209,13 +209,6 @@ def pred_plot_image(model:torch.nn.Module,
     print(f"[INFO] Saving results curves to: {save_path}")
     plt.savefig(save_path)
 
-import matplotlib.pyplot as plt
-import torch
-from typing import List, Tuple
-from pathlib import Path
-from PIL import Image
-import torchvision
-
 def pred_plot_images(model: torch.nn.Module,
                      image_paths: List[str],
                      class_names: List[str],
