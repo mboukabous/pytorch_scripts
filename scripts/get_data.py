@@ -76,7 +76,8 @@ def local_data(local_link: str) -> Tuple[Path, Path]:
   image_path = Path(local_link)
 
   # If the image folder doesn't exist, raise an error
-  assert not image_path.is_dir(), "Dataset doesn't exist, please enter a correct url"
+  assert image_path.is_dir(), f"Dataset doesn't exist at {local_link}, please enter a correct URL"
+
 
   # Setup train and testing paths
   train_dir = image_path / "train"
