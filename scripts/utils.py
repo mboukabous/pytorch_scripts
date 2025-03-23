@@ -7,7 +7,9 @@ from torch import nn
 import torchvision
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.metrics import ConfusionMatrixDisplay
 
 from typing import List, Tuple
 from PIL import Image
@@ -321,3 +323,40 @@ def replace_last_linear_layer(model, num_classes):
     else:
         print("No Linear layer found to replace.")
     return model
+
+
+
+def plot_confusion_matrix(cm, class_names, save=False, target_dir=None, model_name=None):
+    """
+    Plots a confusion matrix using sklearn.metrics.ConfusionMatrixDisplay.
+
+    Args:
+        cm (array-like): Confusion matrix (list or NumPy array).
+        class_names (List[str]): List of class names to label the axes.
+        save (bool): Whether to save the plot.
+        target_dir (str): Directory to save the plot.
+        model_name (str): Filename for the saved plot (e.g., "confusion_matrix.png").
+    """
+    cm = np.array(cm)  # Ensure cm is a NumPy array
+
+    # Use sklearn's ConfusionMatrixDisplay for better reliability
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    disp.plot(cmap=plt.cm.Blues, ax=ax, values_format='d')  # 'd' for integer formatting
+
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    if save:
+        # Ensure target directory exists
+        target_dir_path = Path(target_dir)
+        target_dir_path.mkdir(parents=True, exist_ok=True)
+        save_path = target_dir_path / model_name
+        print(f"[INFO] Saving confusion matrix plot to: {save_path}")
+        plt.savefig(save_path)
+        plt.close()
+    else:
+        plt.show()
