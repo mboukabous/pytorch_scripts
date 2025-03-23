@@ -156,7 +156,7 @@ def train(model: torch.nn.Module,
         tqdm.write(f"Epoch {epoch}/{epochs} | "
                    f"train_loss: {train_loss:.4f} | train_acc: {train_acc:.4f} | "
                    f"test_loss: {test_loss:.4f} | test_acc: {test_acc:.4f} | "
-                   f"weighted_precision: {weighted_precision:.4f} | weighted_recall: {weighted_recall:.4f} | weighted_f1: {weighted_f1:.4f}")
+                   f"precision: {weighted_precision:.4f} | recall: {weighted_recall:.4f} | f1-score: {weighted_f1:.4f}")
 
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_acc)
